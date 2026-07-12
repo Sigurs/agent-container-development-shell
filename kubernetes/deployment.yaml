@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: agent-terminal
+  name: development-shell
   labels:
-    app: agent-terminal
+    app: development-shell
 spec:
   replicas: 1
   # Recreate, not RollingUpdate: two pods sharing one SSH identity/workdir
@@ -12,31 +12,27 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: agent-terminal
+      app: development-shell
   template:
     metadata:
       labels:
-        app: agent-terminal
+        app: development-shell
     spec:
       automountServiceAccountToken: false
+      hostUsers: false
       securityContext:
         fsGroup: 1000
       containers:
-        - name: agent-terminal
-          image: agent-terminal:latest   # replace with your registry ref, ideally pinned by digest
-          imagePullPolicy: IfNotPresent
+        - name: development-shell
+          image: ghcr.io/sigurs/agent-container-development-shell:latest
+          imagePullPolicy: Always
           ports:
             - name: ssh
               containerPort: 2222
               protocol: TCP
-          env:
-            # Inline for a self-contained manifest. Prefer sourcing this from
-            # a Secret once you're allowed more resources:
-            #   valueFrom: { secretKeyRef: { name: agent-ssh, key: authorized_keys } }
-            - name: agent_AUTHORIZED_KEYS
-              value: "ssh-ed25519 AAAA... agent-agent"
-            # If the agent needs gh auth, inject a fine-grained PAT the same
-            # way (Secret-backed GH_TOKEN) rather than baking it in here.
+          envFrom:
+            - secretRef:
+                name: development-shell
           securityContext:
             # sshd itself runs as 'agent' — no root, no capabilities at all.
             # A non-root sshd can only authenticate sessions as its own uid,
@@ -51,8 +47,8 @@ spec:
               type: RuntimeDefault
           resources:
             requests:
-              cpu: 250m
-              memory: 512Mi
+              cpu: 10m
+              memory: 128Mi
             limits:
               cpu: "2"
               memory: 2Gi
