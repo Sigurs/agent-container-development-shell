@@ -1,6 +1,6 @@
 # Minimal SSH terminal environment for agent-agent
 # Base: node slim (OpenSpec requires Node >= 20.19)
-FROM node:22-bookworm-slim
+FROM node:24-bookworm-slim
 
 # --- System packages: sshd, git, and basic file/editing tools ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
