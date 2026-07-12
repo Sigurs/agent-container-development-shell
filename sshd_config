@@ -1,0 +1,47 @@
+# --- Hardened sshd config for agent-agent terminal container ---
+# sshd runs AS the 'agent' user (non-root). It therefore cannot setuid,
+# meaning only 'agent' can ever log in — enforced by the kernel, not
+# just by config.
+
+Port 2222
+AddressFamily any
+HostKey /etc/ssh/host_keys/ssh_host_ed25519_key
+PidFile none
+
+# --- Authentication: keys only, single allowed user ---
+PermitRootLogin no
+AllowUsers agent
+PubkeyAuthentication yes
+AuthorizedKeysFile /home/agent/.ssh/authorized_keys
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitEmptyPasswords no
+UsePAM no
+MaxAuthTries 3
+LoginGraceTime 20
+MaxSessions 4
+MaxStartups 4:50:8
+
+# --- Disable everything the agent doesn't need ---
+X11Forwarding no
+AllowAgentForwarding no
+AllowTcpForwarding no
+PermitTunnel no
+GatewayPorts no
+PermitUserEnvironment no
+PermitUserRC no
+
+# --- Modern crypto only ---
+KexAlgorithms sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
+
+# --- Session housekeeping ---
+ClientAliveInterval 300
+ClientAliveCountMax 2
+UseDNS no
+PrintMotd no
+Subsystem sftp internal-sftp
+
+# Log auth events to stderr (docker logs)
+LogLevel VERBOSE

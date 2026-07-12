@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-terminal
+  labels:
+    app: agent-terminal
+spec:
+  replicas: 1
+  # Recreate, not RollingUpdate: two pods sharing one SSH identity/workdir
+  # makes no sense, and the agent should reconnect rather than hit a twin.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: agent-terminal
+  template:
+    metadata:
+      labels:
+        app: agent-terminal
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: agent-terminal
+          image: agent-terminal:latest   # replace with your registry ref, ideally pinned by digest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: ssh
+              containerPort: 2222
+              protocol: TCP
+          env:
+            # Inline for a self-contained manifest. Prefer sourcing this from
+            # a Secret once you're allowed more resources:
+            #   valueFrom: { secretKeyRef: { name: agent-ssh, key: authorized_keys } }
+            - name: agent_AUTHORIZED_KEYS
+              value: "ssh-ed25519 AAAA... agent-agent"
+            # If the agent needs gh auth, inject a fine-grained PAT the same
+            # way (Secret-backed GH_TOKEN) rather than baking it in here.
+          securityContext:
+            # sshd itself runs as 'agent' — no root, no capabilities at all.
+            # A non-root sshd can only authenticate sessions as its own uid,
+            # so the single-user restriction is kernel-enforced.
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            # SSH host identity. emptyDir = new host key on every pod
+            # recreation (known_hosts churn for the agent). Swap for a PVC
+            # when you can add one.
+            - name: host-keys
+              mountPath: /etc/ssh/host_keys
+            # Agent workspace — same caveat: emptyDir does not survive the pod.
+            - name: work
+              mountPath: /home/agent/work
+          startupProbe:
+            tcpSocket:
+              port: ssh
+            periodSeconds: 2
+            failureThreshold: 15
+          readinessProbe:
+            tcpSocket:
+              port: ssh
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: ssh
+            periodSeconds: 20
+            failureThreshold: 3
+      volumes:
+        - name: host-keys
+          emptyDir: {}
+        - name: work
+          emptyDir:
+            sizeLimit: 5Gi
+      terminationGracePeriodSeconds: 30
