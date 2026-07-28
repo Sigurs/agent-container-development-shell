@@ -4,6 +4,7 @@ FROM node:26-bookworm-slim
 
 # --- System packages: sshd, git, and basic file/editing tools ---
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
+        sudo \
         openssh-server \
         git \
         ca-certificates \
@@ -42,7 +43,11 @@ ENV OPENSPEC_TELEMETRY=0
 RUN userdel -r node 2>/dev/null || true \
     && useradd --create-home --shell /bin/bash --uid 1000 --gid 0 agent \
     && install -d -m 700 -o agent -g 0 /home/agent/.ssh \
-    && install -d -m 770 -o agent -g 0 /home/agent/work
+    && install -d -m 770 -o agent -g 0 /home/agent/work 
+
+# --- Setup isolation shims
+COPY --chown=root:root --chmod=755 gh-safe /usr/local/bin/gh-safe
+RUN useradd --create-home --shell /bin/bash --uid 999 --gid 0 shims
 
 # --- sshd setup (runs as the unprivileged 'agent' user) ---
 # A non-root sshd cannot setuid, so it can only accept logins as the user

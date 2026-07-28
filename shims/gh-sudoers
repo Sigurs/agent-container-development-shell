@@ -1,0 +1,1 @@
+agent ALL=(shims) NOPASSWD: /usr/local/bin/gh-safe

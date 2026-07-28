@@ -1,0 +1,8 @@
+#!/bin/bash
+set -euo pipefail
+# never let the token be echoed back
+if [[ "${1:-}" == "auth" ]]; then
+  case "${2:-}" in token|status) echo "blocked" >&2; exit 1;; esac
+fi
+export GH_TOKEN="$(< /home/shims/.gh_token)"
+exec /usr/bin/gh "$@"
