@@ -45,10 +45,9 @@ jobs:
     permissions:
       packages: write
     steps:
-      - uses: actions/delete-package-versions@v5
+      - uses: dataaxiom/ghcr-cleanup-action@v1
         with:
-          package-name: ${{ github.event.repository.name }}
-          package-type: container
-          min-versions-to-keep: 1
-          delete-only-untagged-versions: false
+          package: ${{ github.event.repository.name }}
+          keep-n-tagged: 1
           older-than: 2 days
+          delete-untagged: true
