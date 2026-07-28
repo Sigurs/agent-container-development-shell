@@ -46,7 +46,8 @@ RUN userdel -r node 2>/dev/null || true \
     && install -d -m 770 -o agent -g 0 /home/agent/work 
 
 # --- Setup isolation shims
-COPY --chown=root:root --chmod=755 gh-safe /usr/local/bin/gh-safe
+COPY --chown=root:root --chmod=755 shims/gh-safe /usr/local/bin/gh-safe
+COPY --chown=root:root --chmod=440 shims/gh-sudoers /etc/sudoers.d/gh-sudoers
 RUN useradd --create-home --shell /bin/bash --uid 999 --gid 0 shims
 
 # --- sshd setup (runs as the unprivileged 'agent' user) ---
