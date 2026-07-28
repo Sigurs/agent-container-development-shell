@@ -13,10 +13,10 @@ fi
 chmod 600 "$HOSTKEY_DIR/ssh_host_ed25519_key"
 
 # Install the agent's public key. Two options:
-#   1. Pass it via env:    agent_AUTHORIZED_KEYS="ssh-ed25519 AAAA..."
+#   1. Pass it via env:    AGENT_AUTHORIZED_KEYS="ssh-ed25519 AAAA..."
 #   2. Mount it read-only at /home/agent/.ssh/authorized_keys
-if [ -n "${agent_AUTHORIZED_KEYS:-}" ]; then
-    printf '%s\n' "$agent_AUTHORIZED_KEYS" > "$AUTH_KEYS"
+if [ -n "${AGENT_AUTHORIZED_KEYS:-}" ]; then
+    printf '%s\n' "$AGENT_AUTHORIZED_KEYS" > "$AUTH_KEYS"
 fi
 
 if [ ! -s "$AUTH_KEYS" ]; then
