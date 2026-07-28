@@ -28,7 +28,7 @@ AllowAgentForwarding no
 AllowTcpForwarding no
 PermitTunnel no
 GatewayPorts no
-PermitUserEnvironment no
+PermitUserEnvironment yes
 PermitUserRC no
 
 # --- Modern crypto only ---

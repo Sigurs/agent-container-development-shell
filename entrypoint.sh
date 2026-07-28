@@ -28,6 +28,13 @@ fi
 # Tighten permissions unless the file is a read-only mount.
 chmod 600 "$AUTH_KEYS" 2>/dev/null || true
 
+# sshd (UsePAM no) starts sessions with a blank env, so the container's
+# k8s-injected vars (TZ, SEARXNG_URL, ...) never reach the login shell on
+# their own. ~/.ssh/environment + PermitUserEnvironment is the standard
+# way to forward them without PAM.
+env | grep -Ev '^(HOME|USER|LOGNAME|SHELL|PATH|PWD|OLDPWD)=' > /home/agent/.ssh/environment
+chmod 600 /home/agent/.ssh/environment
+
 # Run sshd in the foreground as the current (non-root) user, logging to
 # stderr. Full path is required by sshd when re-executing itself.
 exec /usr/sbin/sshd -D -e
