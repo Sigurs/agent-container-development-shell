@@ -1,9 +1,9 @@
 # Minimal SSH terminal environment for agent-agent
 # Base: node slim (OpenSpec requires Node >= 20.19)
-FROM node:24-bookworm-slim
+FROM node:26-bookworm-slim
 
 # --- System packages: sshd, git, and basic file/editing tools ---
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
         openssh-server \
         git \
         ca-certificates \
@@ -28,7 +28,9 @@ RUN install -d -m 755 /etc/apt/keyrings \
     && rm -rf /var/lib/apt/lists/*
 
 # --- OpenSpec (spec-driven development CLI) ---
-RUN npm install -g @fission-ai/openspec@latest \
+# .npmrc enforces minimum-release-age so a freshly (potentially maliciously) published version can't land here
+COPY .npmrc /root/.npmrc
+RUN npm install -g npm@latest @fission-ai/openspec@latest \
     && npm cache clean --force
 ENV OPENSPEC_TELEMETRY=0
 
