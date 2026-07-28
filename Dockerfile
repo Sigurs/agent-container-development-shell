@@ -38,7 +38,7 @@ ENV OPENSPEC_TELEMETRY=0
 # (the GID stays 0 and these dirs are already group-writable).
 RUN userdel -r node 2>/dev/null || true \
     && useradd --create-home --shell /bin/bash --uid 1000 --gid 0 agent \
-    && install -d -m 770 -o agent -g 0 /home/agent/.ssh \
+    && install -d -m 700 -o agent -g 0 /home/agent/.ssh \
     && install -d -m 770 -o agent -g 0 /home/agent/work
 
 # --- sshd setup (runs as the unprivileged 'agent' user) ---
