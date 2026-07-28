@@ -14,6 +14,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
         less \
         jq \
         ripgrep \
+        python3 \
     && rm -rf /var/lib/apt/lists/*
 
 # --- GitHub CLI from the official apt repo ---
