@@ -10,7 +10,8 @@ AUTH_KEYS=/home/agent/.ssh/authorized_keys
 if [ ! -f "$HOSTKEY_DIR/ssh_host_ed25519_key" ]; then
     ssh-keygen -t ed25519 -N "" -f "$HOSTKEY_DIR/ssh_host_ed25519_key"
 fi
-chmod 600 "$HOSTKEY_DIR/ssh_host_ed25519_key"
+# Tighten permissions unless the volume is a read-only mount.
+chmod 600 "$HOSTKEY_DIR/ssh_host_ed25519_key" 2>/dev/null || true
 
 # Install the agent's public key. Two options:
 #   1. Pass it via env:    AGENT_AUTHORIZED_KEYS="ssh-ed25519 AAAA..."
